@@ -3,6 +3,9 @@ FROM php:8.4-fpm
 # Copy composer.lock and composer.json
 COPY composer.lock composer.json /var/www/
 
+# Copy the rest of your application
+COPY . /var/www
+
 # Set working directory
 WORKDIR /var/www
 
@@ -69,6 +72,10 @@ RUN dos2unix /usr/local/bin/entrypoint && \
 ENV PATH="/root/.cargo/bin:${PATH}"
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && \
     echo 'source $HOME/.cargo/env' >> ~/.bashrc
+
+# Install PHP dependencies
+COPY composer.lock composer.json /var/www/
+RUN composer install --no-dev --optimize-autoloader
 
 # Run entrypoint
 CMD ["/usr/local/bin/entrypoint"]
