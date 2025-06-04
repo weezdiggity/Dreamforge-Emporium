@@ -4,10 +4,13 @@
       "COMPOSER_ALLOW_SUPERUSER": "1"
     },
     "commands": [
-      "composer install --no-dev --optimize-autoloader"
+      "apt-get update && apt-get install -y unzip curl git php-cli php-mbstring php-xml php-bcmath php-curl php-sqlite3",
+      "curl -sS https://getcomposer.org/installer | php",
+      "php composer.phar install --no-dev --optimize-autoloader",
+      "php artisan key:generate"
     ]
   },
-  "start": "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8080"
+  "start": "php artisan serve --host=0.0.0.0 --port=8080"
 }
 
 
