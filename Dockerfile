@@ -62,6 +62,19 @@ COPY --chown=www-data:www-data \
     rust \
     /var/www/
 
+# Copy your composer files
+COPY composer.lock composer.json /var/www/
+
+# Set working directory
+WORKDIR /var/www
+
+# Install PHP dependencies
+COPY composer.lock composer.json /var/www/
+RUN composer install --no-dev --optimize-autoloader
+
+# THEN clear config
+RUN php artisan config:clear
+
 # Copy the .env file explicitly
 COPY .env /var/www/.env
 
@@ -77,10 +90,6 @@ RUN dos2unix /usr/local/bin/entrypoint && \
 ENV PATH="/root/.cargo/bin:${PATH}"
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && \
     echo 'source $HOME/.cargo/env' >> ~/.bashrc
-
-# Install PHP dependencies
-COPY composer.lock composer.json /var/www/
-RUN composer install --no-dev --optimize-autoloader
 
 # Run entrypoint
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8080"]
