@@ -1,12 +1,9 @@
-
 services:
   - type: web
     name: dreamforge-emporium
     runtime: docker
     repo: https://github.com/weezdiggity/OGameX.git
     plan: free
-    dockerfilePath: Dockerfile
-    startCommand: php artisan serve --host=0.0.0.0 --port=8080
     envVars:
       - key: APP_ENV
         value: production
@@ -21,17 +18,18 @@ services:
           name: dreamforge-db
           property: host
       - key: DB_PORT
-        value: 3306
+        fromDatabase:
+          name: dreamforge-db
+          property: port
       - key: DB_DATABASE
         value: dreamforge
       - key: DB_USERNAME
         value: root
       - key: DB_PASSWORD
-        fromDatabase:
-          name: dreamforge-db
-          property: password
+        value: your_actual_password_here  # You must manually set this or store it securely
 
 databases:
   - name: dreamforge-db
     plan: free
     databaseName: dreamforge
+
