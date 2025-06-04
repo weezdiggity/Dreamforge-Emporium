@@ -28,7 +28,7 @@ RUN apt-get update && apt-get install -y \
     dos2unix \
     pkg-config \
     libffi-dev  # Install PHP FFI development files required to interface with Rust for BattleEngine  \
-    && \ apt-get clean && rm -rf /var/lib/apt/lists/ # Clear cache
+   RUN php artisan config:clear && php artisan config:cache # Clear cache
 
 # Install extensions
 RUN docker-php-ext-install ffi pdo_mysql mbstring zip exif pcntl && \
@@ -53,12 +53,17 @@ RUN if [ $OPCACHE_ENABLE = "1" ]; then \
 # Install composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
+RUN php artisan config:clear
+
 # Copy necessary folders with correct permissions in a single layer
 COPY --chown=www-data:www-data \
     storage \
     bootstrap/cache \
     rust \
     /var/www/
+
+# Copy the .env file explicitly
+COPY .env /var/www/.env
 
 # Then copy remaining files with default permissions
 COPY . /var/www/
