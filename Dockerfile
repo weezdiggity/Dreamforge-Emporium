@@ -1,11 +1,5 @@
 FROM php:8.4-fpm
 
-# Copy composer.lock and composer.json
-COPY composer.lock composer.json /var/www/
-
-# Copy the rest of your application
-COPY . /var/www
-
 # Set working directory
 WORKDIR /var/www
 
@@ -27,17 +21,17 @@ RUN apt-get update && apt-get install -y \
     curl \
     dos2unix \
     pkg-config \
-    libffi-dev  # Install PHP FFI development files required to interface with Rust for BattleEngine  \
-   RUN php artisan config:clear && php artisan config:cache # Clear cache
+    libffi-dev \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install extensions
+# Install PHP extensions
 RUN docker-php-ext-install ffi pdo_mysql mbstring zip exif pcntl && \
     docker-php-ext-configure gd --with-freetype=/usr/include/ --with-jpeg=/usr/include/ && \
     docker-php-ext-install gd
 
 # Enable and configure opcache only if OPCACHE_ENABLE is set to "1"
 ARG OPCACHE_ENABLE=0
-RUN if [ $OPCACHE_ENABLE = "1" ]; then \
+RUN if [ "$OPCACHE_ENABLE" = "1" ]; then \
     docker-php-ext-install opcache && \
     { \
         echo 'opcache.memory_consumption=128'; \
@@ -47,49 +41,39 @@ RUN if [ $OPCACHE_ENABLE = "1" ]; then \
         echo 'opcache.fast_shutdown=1'; \
         echo 'opcache.enable_cli=1'; \
         echo 'opcache.enable=1'; \
-    } > /usr/local/etc/php/conf.d/opcache-recommended.ini \
-;fi
+    } > /usr/local/etc/php/conf.d/opcache-recommended.ini; \
+fi
 
-# Install composer
+# Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-RUN php artisan config:clear
-
-# Copy necessary folders with correct permissions in a single layer
-COPY --chown=www-data:www-data \
-    storage \
-    bootstrap/cache \
-    rust \
-    /var/www/
-
-# Copy your composer files
-COPY composer.lock composer.json /var/www/
-
-# Set working directory
-WORKDIR /var/www
+# Copy Composer files
+COPY composer.lock composer.json ./
 
 # Install PHP dependencies
-COPY composer.lock composer.json /var/www/
 RUN composer install --no-dev --optimize-autoloader
 
-# THEN clear config
-RUN php artisan config:clear
+# Copy Laravel application code
+COPY . .
 
-# Copy the .env file explicitly
+# Copy .env file (be sure it's not ignored in .dockerignore or .gitignore)
 COPY .env /var/www/.env
 
-# Then copy remaining files with default permissions
-COPY . /var/www/
+# Ensure correct permissions
+RUN chown -R www-data:www-data storage bootstrap/cache
 
-# Copy entry point, convert line endings and set permissions
-COPY docker/entrypoint.sh /usr/local/bin/entrypoint
-RUN dos2unix /usr/local/bin/entrypoint && \
-    chmod +x /usr/local/bin/entrypoint
+# Clear and cache Laravel config
+RUN php artisan config:clear && php artisan config:cache
 
-# Setup Rust/Cargo
+# Optional: set up Rust (if your app uses it)
 ENV PATH="/root/.cargo/bin:${PATH}"
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && \
     echo 'source $HOME/.cargo/env' >> ~/.bashrc
 
-# Run entrypoint
+# Copy and prepare entrypoint
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint
+RUN dos2unix /usr/local/bin/entrypoint && \
+    chmod +x /usr/local/bin/entrypoint
+
+# Start Laravel development server
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8080"]
