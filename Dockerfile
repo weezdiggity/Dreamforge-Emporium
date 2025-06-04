@@ -26,10 +26,13 @@ RUN apt-get update && apt-get install -y \
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Copy entire Laravel app BEFORE running composer
+# Copy Laravel app source (except vendor)
 COPY . /var/www
 
-# Now install PHP extensions
+# Copy .env BEFORE composer install
+COPY .env /var/www/.env
+
+# Install PHP extensions
 RUN docker-php-ext-install ffi pdo_mysql mbstring zip exif pcntl && \
     docker-php-ext-configure gd --with-freetype=/usr/include/ --with-jpeg=/usr/include/ && \
     docker-php-ext-install gd
@@ -40,10 +43,10 @@ RUN composer install --no-dev --optimize-autoloader
 # Set correct permissions for Laravel
 RUN chown -R www-data:www-data /var/www && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
-# Copy .env file
-COPY .env /var/www/.env
+# Confirm .env is copied correctly (for debug; remove later)
+RUN echo "ENV CONTENTS:" && cat /var/www/.env
 
-# Cache Laravel config (only works after .env + vendor + artisan are present)
+# Cache Laravel config
 RUN php artisan config:clear && php artisan config:cache
 
 # Entrypoint (optional)
