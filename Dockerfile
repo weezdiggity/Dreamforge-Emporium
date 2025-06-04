@@ -78,4 +78,4 @@ COPY composer.lock composer.json /var/www/
 RUN composer install --no-dev --optimize-autoloader
 
 # Run entrypoint
-CMD ["/usr/local/bin/entrypoint"]
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8080"]
