@@ -1,5 +1,8 @@
 <?php
 
+
+
+
 use Illuminate\Support\Facades\Route;
 use OGame\Http\Controllers\Admin\DeveloperShortcutsController;
 use OGame\Http\Controllers\Admin\ServerSettingsController as AdminServerSettingsController;
@@ -42,7 +45,15 @@ use OGame\Http\Controllers\TechtreeController;
 |
 */
 
-Route::redirect('/', '/overview', 301);
+Route::get('/check', function () {
+    return config('app.key');
+});
+Route::get('/check', function () {
+    return 'Laravel is working!';
+});
+Route::get('/', function () {
+    return view('welcome');
+});
 
 // Group: all logged in pages:
 Route::middleware(['auth', 'globalgame', 'locale'])->group(function () {
@@ -162,4 +173,13 @@ Route::middleware(['auth', 'globalgame', 'locale', 'admin'])->group(function () 
     Route::post('/admin/developer-shortcuts/resources', [DeveloperShortcutsController::class, 'updateResources'])->name('admin.developershortcuts.update-resources');
     Route::post('/admin/developershortcuts/create-at-coords', [DeveloperShortcutsController::class, 'createAtCoords'])->name('admin.developershortcuts.create-at-coords');
     Route::post('/admin/developershortcuts/create-debris', [DeveloperShortcutsController::class, 'createDebris'])->name('admin.developershortcuts.create-debris');
+}); // <== THIS was missing
+
+// Not part of the group — standalone route
+Route::get('/debug-key', function () {
+    return [
+        'APP_KEY' => config('app.key'),
+        'CIPHER' => config('app.cipher'),
+        'Valid_Key_Length' => strlen(base64_decode(str_replace('base64:', '', config('app.key')))),
+    ];
 });
