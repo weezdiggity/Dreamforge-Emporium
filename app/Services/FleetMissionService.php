@@ -258,9 +258,13 @@ class FleetMissionService
         // - AND -
         // 2. All missions against any of current users planets (by other players).
         $planetIds = [];
-        foreach ($this->player->planets->all() as $planet) {
-            $planetIds[] = $planet->getPlanetId();
-        }
+
+if ($this->player && $this->player->planets) {
+    foreach ($this->player->planets->all() as $planet) {
+        $planetIds[] = $planet->getPlanetId();
+    }
+}
+
 
         $query = $query->where(function ($query) use ($planetIds) {
             $query->where('user_id', $this->player->getId())
@@ -276,24 +280,25 @@ class FleetMissionService
      *
      * @return bool
      */
-    public function currentPlayerUnderAttack(): bool
-    {
-        $planetIds = [];
-        foreach ($this->player->planets->all() as $planet) {
-            $planetIds[] = $planet->getPlanetId();
-        }
-
-        // Mission types that are considered hostile:
-        // 1: Attack
-        // 2: ACS Attack
-        // 6: Espionage
-        // 9: Moon Destruction
-        return $this->model->whereIn('planet_id_to', $planetIds)
-            ->where('user_id', '!=', $this->player->getId())
-            ->whereIn('mission_type', [1, 2, 6, 9])
-            ->where('processed', 0)
-            ->exists();
+   public function currentPlayerUnderAttack(): bool
+{
+    // Ensure player planets are loaded
+    if (!$this->player->planets) {
+        $this->player->load(auth()->id());
     }
+
+    $planetIds = [];
+    foreach ($this->player->planets->all() as $planet) {
+        $planetIds[] = $planet->getPlanetId();
+    }
+
+    return $this->model->whereIn('planet_id_to', $planetIds)
+        ->where('user_id', '!=', $this->player->getId())
+        ->whereIn('mission_type', [1, 2, 6, 9])
+        ->where('processed', 0)
+        ->exists();
+}
+
 
     /**
      * Get the total unit count of a fleet mission.

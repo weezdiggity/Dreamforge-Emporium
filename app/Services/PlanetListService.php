@@ -3,7 +3,7 @@
 namespace OGame\Services;
 
 use Exception;
-use OGame\Factories\PlanetServiceFactory;
+use OGame\Services\PlanetServiceFactory;
 use OGame\Models\Planet as Planet;
 use OGame\Models\Enums\PlanetType;
 use OGame\Models\Planet\Coordinate;
@@ -17,42 +17,24 @@ use OGame\Models\Planet\Coordinate;
  */
 class PlanetListService
 {
-    /**
-     * Array of planets.
-     *
-     * @var array<PlanetService>
-     */
     private array $planets = [];
-
-    /**
-     * Array of moons.
-     *
-     * @var array<PlanetService>
-     */
     private array $moons = [];
-
-    /**
-     * PlayerService
-     *
-     * @var PlayerService
-     */
     private PlayerService $player;
-
-    /**
-     * @var PlanetServiceFactory $planetServiceFactory
-     */
     private PlanetServiceFactory $planetServiceFactory;
 
     /**
-     * Planets constructor.
+     * PlanetListService constructor.
      */
     public function __construct(PlayerService $player, PlanetServiceFactory $planetServiceFactory)
     {
-        $this->planetServiceFactory = $planetServiceFactory;
         $this->player = $player;
+        $this->planetServiceFactory = $planetServiceFactory;
+
+        $this->moons = [];
 
         // Get all planets (and moons) of user.
         $planets = Planet::where('user_id', $player->getId())->get();
+
         foreach ($planets as $planetModel) {
             $planetService = $this->planetServiceFactory->makeFromModel($planetModel, $this->player);
 
@@ -65,8 +47,9 @@ class PlanetListService
     }
 
     /**
-     * Get already loaded planet or moon by ID. Invokes an exception if the
-     * planet is not found.
+     * Get already loaded planet or moon by ID.
+     * Throws an exception if not found.
+     *
      * @throws Exception
      */
     public function getById(int $id): PlanetService
@@ -76,29 +59,35 @@ class PlanetListService
                 return $planet;
             }
         }
+
         foreach ($this->moons as $moon) {
             if ($moon->getPlanetId() === $id) {
                 return $moon;
             }
         }
 
-        throw new Exception('Requested planet or moon is not owned by this player.');
+        throw new Exception("Planet or moon with ID {$id} not found.");
     }
+
 
     /**
      * Try to find a planet by its coordinates. Returns null if no planet is found.
      */
-    public function getPlanetByCoordinates(Coordinate $coordinate): PlanetService|null
-    {
-        foreach ($this->planets as $planet) {
-            $planetCoordinates = $planet->getPlanetCoordinates();
-            if ($planetCoordinates->galaxy === $coordinate->galaxy && $planetCoordinates->system === $coordinate->system && $planetCoordinates->position === $coordinate->position) {
-                return $planet;
-            }
+    public function getPlanetByCoordinates(Coordinate $coordinate): ?PlanetService
+{
+    foreach ($this->planets as $planet) {
+        $planetCoordinates = $planet->getPlanetCoordinates();
+        if (
+            $planetCoordinates->galaxy === $coordinate->galaxy &&
+            $planetCoordinates->system === $coordinate->system &&
+            $planetCoordinates->position === $coordinate->position
+        ) {
+            return $planet;
         }
-
-        return null;
     }
+
+    return null;
+}
 
     /**
      * Try to find a moon by its coordinates. Returns null if no moon is found.

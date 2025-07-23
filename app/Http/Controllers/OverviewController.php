@@ -16,6 +16,8 @@ use OGame\Services\UnitQueueService;
 
 class OverviewController extends OGameController
 {
+    
+
     /**
      * Shows the overview index page
      *

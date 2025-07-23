@@ -27,6 +27,7 @@ class GalaxyController extends OGameController
     private PlanetServiceFactory $planetServiceFactory;
 
     /**
+     
      * Shows the galaxy index page.
      *
      * @param Request $request
@@ -40,7 +41,11 @@ class GalaxyController extends OGameController
         $this->playerService = $player;
         $this->planetServiceFactory = $planetServiceFactory;
 
-        // Get current galaxy and system from current planet.
+       
+         // Load the authenticated player
+    $player->load(auth()->id());
+    
+     // Get current galaxy and system from current planet.
         $planet = $player->planets->current();
         $coordinates = $planet->getPlanetCoordinates();
         $galaxy = $coordinates->galaxy;
@@ -57,6 +62,8 @@ class GalaxyController extends OGameController
         return view('ingame.galaxy.index')->with([
             'current_galaxy' => $galaxy,
             'current_system' => $system,
+            'player' => $player,
+            'planet' => $planet,
             'espionage_probe_count' => $planet->getObjectAmount('espionage_probe'),
             'recycler_count' => $planet->getObjectAmount('recycler'),
             'interplanetary_missiles_count' => $planet->getObjectAmount('interplanetary_missile'),
@@ -77,36 +84,46 @@ class GalaxyController extends OGameController
      * @return array<mixed>
      * @throws Exception
      */
-    public function getGalaxyArray(int $galaxy, int $system, PlayerService $player, PlanetServiceFactory $planetServiceFactory): array
-    {
-        $this->playerService = $player;
-        $this->planetServiceFactory = $planetServiceFactory;
+ public function getGalaxyArray(int $galaxy, int $system, PlayerService $player, PlanetServiceFactory $planetServiceFactory): array
+{
+    $this->playerService = $player;
+    $this->planetServiceFactory = $planetServiceFactory;
 
-        // Retrieve all planets from this galaxy and system.
-        $planet_list = Planet::where([
-            'galaxy' => $galaxy,
-            'system' => $system,
-            'planet_type' => PlanetType::Planet->value
-        ])->get();
+    // Eager-load user relationship
+    $planet_list = Planet::with('user')->where([
+        'galaxy' => $galaxy,
+        'system' => $system,
+        'planet_type' => PlanetType::Planet->value
+    ])->get();
 
-        $planets = [];
-        foreach ($planet_list as $planet) {
-            $planetService = $planetServiceFactory->makeFromModel($planet);
-            $planets[$planet->planet] = $planetService;
-        }
-
-        // Render galaxy rows.
-        $galaxy_rows = [];
-        for ($i = 1; $i <= 15; $i++) {
-            if (!empty($planets[$i])) {
-                $galaxy_rows[] = $this->createPlanetRow($galaxy, $system, $i, $planets[$i]);
-            } else {
-                $galaxy_rows[] = $this->createEmptySpaceRow($galaxy, $system, $i);
-            }
-        }
-
-        return $galaxy_rows;
+    $planets = [];
+    foreach ($planet_list as $planet) {
+        $planetService = $planetServiceFactory->makeFromModel($planet);
+         $ownerName = $planet->user?->username ?? 'Unknown';
+        $planets[$planet->planet] = [
+            'service' => $planetService,
+            'owner_name' => $ownerName,
+        ];
     }
+
+    $galaxy_rows = [];
+    for ($i = 1; $i <= 15; $i++) {
+        if (!empty($planets[$i])) {
+            $galaxy_rows[] = $this->createPlanetRow(
+                $galaxy,
+                $system,
+                $i,
+                $planets[$i]['service'],
+                $planets[$i]['owner name']
+            );
+        } else {
+            $galaxy_rows[] = $this->createEmptySpaceRow($galaxy, $system, $i);
+        }
+    }
+
+    return $galaxy_rows;
+}
+
 
     /**
      * Creates a row for a planet in the galaxy view.
@@ -117,22 +134,27 @@ class GalaxyController extends OGameController
      * @param PlanetService $planet
      * @return array<string, mixed>
      */
-    private function createPlanetRow(int $galaxy, int $system, int $position, PlanetService $planet): array
-    {
-        $availableMissions = $this->getAvailableMissions($galaxy, $system, $position, $planet);
-        $planets_array = $this->createPlanetsArray($planet, $availableMissions);
+ private function createPlanetRow(int $galaxy, int $system, int $position, PlanetService $planet, string $ownerName): array
 
-        return [
-            'actions' => $this->getPlanetActions($planet),
-            'availableMissions' => [],
-            'galaxy' => $galaxy,
-            'planets' => $planets_array,
-            'player' => $this->getPlayerInfo($planet->getPlayer()),
-            'position' => $position,
-            'positionFilters' => '',
-            'system' => $system,
-        ];
-    }
+{
+    $availableMissions = $this->getAvailableMissions($galaxy, $system, $position, $planet);
+    $planets_array = $this->createPlanetsArray($planet, $availableMissions);
+
+    return [
+        'actions' => $this->getPlanetActions($planet),
+        'availableMissions' => [],
+        'galaxy' => $galaxy,
+        'planets' => $planets_array,
+        'player' => [
+            'name' => $ownerName,
+        ],
+        'position' => $position,
+        'positionFilters' => '',
+        'system' => $system,
+    ];
+}
+
+  
 
     /**
      * Creates an array of planets for the galaxy view.
@@ -415,6 +437,7 @@ class GalaxyController extends OGameController
      */
     public function ajax(Request $request, PlayerService $player, PlanetServiceFactory $planetServiceFactory): JsonResponse
     {
+        $player->load(auth()->id()); // 👈 Must load the player data!
         $this->playerService = $player;
         $this->planetServiceFactory = $planetServiceFactory;
 

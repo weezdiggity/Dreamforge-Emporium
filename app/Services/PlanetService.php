@@ -1172,11 +1172,16 @@ class PlanetService
 
         // Access all players planets and see if there is a moon with the same coordinates
         // as this planet.
-        if ($this->getPlayer()->planets->getMoonByCoordinates($this->getPlanetCoordinates()) !== null) {
-            return true;
-        }
+        $this->getPlayer()->load(auth()->id());
 
-        return false;
+$planets = $this->getPlayer()->planets;
+
+if ($planets && $planets->getMoonByCoordinates($this->getPlanetCoordinates()) !== null) {
+    return true;
+}
+
+return false;
+
     }
 
     /**

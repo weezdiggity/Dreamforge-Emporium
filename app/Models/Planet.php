@@ -167,15 +167,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Planet whereSensorPhalanx($value)
  * @mixin \Eloquent
  */
+
 class Planet extends Model
 {
-    use HasFactory;
-
-    /**
-     * Get the planet that owns the research queue record.
-     */
-    public function planet(): BelongsTo
+   public function user(): BelongsTo
     {
-        return $this->belongsTo('OGame\Models\Planet');
+        return $this->belongsTo(\OGame\Models\User::class, 'user_id');
     }
-}
+} // <--- This is the only closing brace you need

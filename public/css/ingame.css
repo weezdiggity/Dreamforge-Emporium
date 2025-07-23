@@ -14628,8 +14628,7 @@ characterclass-bonus .technology-fullrow {
             #0000 25%,#0008 0 37.5%,#0004 0) 0   /50% 100% no-repeat,
             conic-gradient(at right var(--s) bottom var(--d),
             #0004 62.5%,#0008 0 75%,#0000 0) 100%/50% 100% no-repeat;
-    -webkit-clip-path: polygon(0 var(--d), var(--s) var(--d),var(--s) 0,calc(100% - var(--s)) 0,calc(100% - var(--s)) var(--d),100% var(--d),calc(100% - var(--c)) calc(50% + var(--d)/2),100% 100%,calc(100% - var(--s) - var(--d)) 100%,calc(100% - var(--s) - var(--d)) calc(100% - var(--d)),calc(var(--s) + var(--d)) calc(100% - var(--d)),calc(var(--s) + var(--d)) 100%,0 100%,var(--c) calc(50% + var(--d)/2));
-            clip-path: polygon(0 var(--d), var(--s) var(--d),var(--s) 0,calc(100% - var(--s)) 0,calc(100% - var(--s)) var(--d),100% var(--d),calc(100% - var(--c)) calc(50% + var(--d)/2),100% 100%,calc(100% - var(--s) - var(--d)) 100%,calc(100% - var(--s) - var(--d)) calc(100% - var(--d)),calc(var(--s) + var(--d)) calc(100% - var(--d)),calc(var(--s) + var(--d)) 100%,0 100%,var(--c) calc(50% + var(--d)/2));
+    clip-path: polygon(0 var(--d), var(--s) var(--d),var(--s) 0,calc(100% - var(--s)) 0,calc(100% - var(--s)) var(--d),100% var(--d),calc(100% - var(--c)) calc(50% + var(--d)/2),100% 100%,calc(100% - var(--s) - var(--d)) 100%,calc(100% - var(--s) - var(--d)) calc(100% - var(--d)),calc(var(--s) + var(--d)) calc(100% - var(--d)),calc(var(--s) + var(--d)) 100%,0 100%,var(--c) calc(50% + var(--d)/2));
 
     width: -moz-fit-content;
 
@@ -43944,7 +43943,7 @@ div.values .equipment .item_img a.timeLink span.time {left: 1px;}
     border-top-color: rgba(var(--pure-material-onsurface-rgb, 255, 255, 255), 0.87);
 }
 
-.labeled-textfield:hover > input:not(:focus):-moz-placeholder-shown, .labeled-textfield:hover > textarea:not(:focus):-moz-placeholder-shown {
+.labeled-textfield:hover > input:not(:focus):-moz-placeholder, .labeled-textfield:hover > textarea:not(:focus):-moz-placeholder {
     border-color: rgba(var(--pure-material-onsurface-rgb, 255, 255, 255), 0.87);
 }
 
@@ -43954,7 +43953,7 @@ div.values .equipment .item_img a.timeLink span.time {left: 1px;}
 }
 
 /* Placeholder-shown */
-.labeled-textfield > input:not(:focus):-moz-placeholder-shown, .labeled-textfield > textarea:not(:focus):-moz-placeholder-shown {
+.labeled-textfield > input:not(:focus):-moz-placeholder, .labeled-textfield > textarea:not(:focus):-moz-placeholder {
     border-top-color: rgba(var(--pure-material-onsurface-rgb, 200, 200, 200), 0.6);
 }
 .labeled-textfield > input:not(:focus):placeholder-shown,
@@ -43962,7 +43961,7 @@ div.values .equipment .item_img a.timeLink span.time {left: 1px;}
     border-top-color: rgba(var(--pure-material-onsurface-rgb, 200, 200, 200), 0.6);
 }
 
-.labeled-textfield > input:not(:focus):-moz-placeholder-shown + span, .labeled-textfield > textarea:not(:focus):-moz-placeholder-shown + span {
+.labeled-textfield > input:not(:focus):-moz-placeholder + span, .labeled-textfield > textarea:not(:focus):-moz-placeholder + span {
     font-size: inherit;
     line-height: 42px;
 }
@@ -43973,7 +43972,7 @@ div.values .equipment .item_img a.timeLink span.time {left: 1px;}
     line-height: 42px;
 }
 
-.labeled-textfield > input:not(:focus):-moz-placeholder-shown + span::before, .labeled-textfield > textarea:not(:focus):-moz-placeholder-shown + span::before, .labeled-textfield > input:not(:focus):-moz-placeholder-shown + span::after, .labeled-textfield > textarea:not(:focus):-moz-placeholder-shown + span::after {
+.labeled-textfield > input:not(:focus):-moz-placeholder + span::before, .labeled-textfield > textarea:not(:focus):-moz-placeholder + span::before, .labeled-textfield > input:not(:focus):-moz-placeholder + span::after, .labeled-textfield > textarea:not(:focus):-moz-placeholder + span::after {
     border-top-color: transparent;
 }
 
@@ -44025,7 +44024,7 @@ div.values .equipment .item_img a.timeLink span.time {left: 1px;}
     border-top-color: rgba(var(--pure-material-onsurface-rgb, 255, 255, 255), 0.38) !important;
 }
 
-.labeled-textfield > input:disabled:-moz-placeholder-shown, .labeled-textfield > input:disabled:-moz-placeholder-shown + span, .labeled-textfield > textarea:disabled:-moz-placeholder-shown, .labeled-textfield > textarea:disabled:-moz-placeholder-shown + span {
+.labeled-textfield > input:disabled:-moz-placeholder, .labeled-textfield > input:disabled:-moz-placeholder + span, .labeled-textfield > textarea:disabled:-moz-placeholder, .labeled-textfield > textarea:disabled:-moz-placeholder + span {
     border-top-color: rgba(var(--pure-material-onsurface-rgb, 255, 255, 255), 0.38) !important;
 }
 
@@ -44036,7 +44035,7 @@ div.values .equipment .item_img a.timeLink span.time {left: 1px;}
     border-top-color: rgba(var(--pure-material-onsurface-rgb, 255, 255, 255), 0.38) !important;
 }
 
-.labeled-textfield > input:disabled:-moz-placeholder-shown + span::before, .labeled-textfield > input:disabled:-moz-placeholder-shown + span::after, .labeled-textfield > textarea:disabled:-moz-placeholder-shown + span::before, .labeled-textfield > textarea:disabled:-moz-placeholder-shown + span::after {
+.labeled-textfield > input:disabled:-moz-placeholder + span::before, .labeled-textfield > input:disabled:-moz-placeholder + span::after, .labeled-textfield > textarea:disabled:-moz-placeholder + span::before, .labeled-textfield > textarea:disabled:-moz-placeholder + span::after {
     border-top-color: transparent !important;
 }
 
@@ -44048,7 +44047,7 @@ div.values .equipment .item_img a.timeLink span.time {left: 1px;}
 }
 
 /* Faster transition in Safari for less noticable fractional font-size issue */
-@media not all and (-webkit-min-device-pixel-ratio:0), not all and (min-resolution:.001dpcm) {
+@media not all and (min-resolution:.001dpcm) {
     @supports (-webkit-appearance:none) {
         .labeled-textfield > input,
         .labeled-textfield > input + span,
@@ -44117,7 +44116,7 @@ div.values .equipment .item_img a.timeLink span.time {left: 1px;}
     border-color: rgba(var(--pure-material-onsurface-rgb, 255, 255, 255), 0.87);
 }
 
-.unlabeled-textfield:hover > input:not(:focus):-moz-placeholder-shown, .unlabeled-textfield:hover > textarea:not(:focus):-moz-placeholder-shown {
+.unlabeled-textfield:hover > input:not(:focus):-moz-placeholder, .unlabeled-textfield:hover > textarea:not(:focus):-moz-placeholder {
     border-color: rgba(var(--pure-material-onsurface-rgb, 255, 255, 255), 0.87);
 }
 
@@ -44127,7 +44126,7 @@ div.values .equipment .item_img a.timeLink span.time {left: 1px;}
 }
 
 /* Placeholder-shown */
-.unlabeled-textfield > input:not(:focus):-moz-placeholder-shown, .unlabeled-textfield > textarea:not(:focus):-moz-placeholder-shown {
+.unlabeled-textfield > input:not(:focus):-moz-placeholder, .unlabeled-textfield > textarea:not(:focus):-moz-placeholder {
     border-top-color: rgba(var(--pure-material-onsurface-rgb, 200, 200, 200), 0.6);
 }
 .unlabeled-textfield > input:not(:focus):placeholder-shown,
@@ -44153,7 +44152,7 @@ div.values .equipment .item_img a.timeLink span.time {left: 1px;}
     pointer-events: none;
 }
 
-.unlabeled-textfield > input:disabled:-moz-placeholder-shown, .unlabeled-textfield > textarea:disabled:-moz-placeholder-shown {
+.unlabeled-textfield > input:disabled:-moz-placeholder, .unlabeled-textfield > textarea:disabled:-moz-placeholder {
     border-top-color: rgba(var(--pure-material-onsurface-rgb, 255, 255, 255), 0.38) !important;
 }
 

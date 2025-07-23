@@ -25047,6 +25047,8 @@ ogame.chat = {
         ogame.chat.initMaximize();
         ogame.chat.getInMaxChat()
     },
+  
+
     getLastChatItemData: function () {
         var l = ogame.chat;
         var h = null;
@@ -79336,7 +79338,7 @@ function initExpeditionFleetTemplates() {
   });
 }
 
-let checkingTarget = false;
+let checkingTarget = true;
 
 function galaxyCheckTarget(expeditionFleetTemplateId, selectedGalaxy, selectedSystem) {
   if (!selectedGalaxy) {

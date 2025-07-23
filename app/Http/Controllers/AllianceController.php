@@ -4,45 +4,58 @@ namespace OGame\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
+use Illuminate\Http\Request;
+use OGame\Services\PlayerService;
 
-class AllianceController extends OGameController
+class AllianceController extends Controller
 {
     /**
      * Shows the alliance index page
-     *
-     * @return View
      */
-    public function index(): View
+    public function index(Request $request): View
+{
+    $playerService = app()->make(PlayerService::class, [
+        'player_id' => $request->user()->id,
+    ]);
+
+    $player = $playerService->getPlayer($request->user()->id);
+
+    return view('ingame.alliance.index', compact('player'));
+}
+
+
+
+    /**
+     * Join the alliance (currently hardcoded to "The Voidborn")
+     */
+    public function join(Request $request)
     {
-        return view('ingame.alliance.index');
+        $user = auth()->user();
+
+        // Hardcoded faction ID (can be dynamic later)
+        $factionId = $request->input('alliance_id', 1);
+
+        $user->alliance_id = $factionId;
+        $user->save();
+
+        return redirect()->back()->with('status', 'You have successfully joined The Voidborn!');
     }
 
     /**
-     * Shows the alliance creation page
-     *
-     * @return View
+     * Load create/join alliance UI via AJAX
      */
-    public function create(): View
-    {
-        // TODO: create template.
-        return view('ingame.alliance.create');
-    }
-
     public function ajaxCreate(): JsonResponse
     {
         return response()->json([
             'content' => [
-              'alliance/alliance_create' => view('ingame.alliance.create')->render(),
+                'alliance/alliance_create' => view('ingame.alliance.join')->render(), // or 'create' if that's your file
             ],
-            'files' => [
-              'js' => [],
-              'css' => [],
-            ],
+            'files' => [],
             'newAjaxToken' => csrf_token(),
             'page' => [
-              'stateObj' => [],
-              'title' => 'OGameX',
-              'url' => route('alliance.index'),
+                'stateObj' => [],
+                'title' => 'Join Faction',
+                'url' => route('alliance.index'),
             ],
             'serverTime' => time(),
             'target' => 'alliance/alliance_create',

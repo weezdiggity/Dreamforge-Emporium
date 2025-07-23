@@ -31,37 +31,42 @@ class FleetController extends OGameController
      * @throws Exception
      */
     public function index(Request $request, PlayerService $player, SettingsService $settings): View
-    {
-        // Define ship ids to include in the fleet screen.
-        // 0 = military ships
-        // 1 = civil ships
-        $screen_objects = [
-            ['light_fighter', 'heavy_fighter', 'cruiser', 'battle_ship', 'battlecruiser', 'bomber', 'destroyer', 'deathstar'],
-            ['small_cargo', 'large_cargo', 'colony_ship', 'recycler', 'espionage_probe'],
-        ];
+{
+    // 🔧 FIX: Load the player's user and planets
+    $player->load(auth()->id());
 
-        $planet = $player->planets->current();
+    // Define ship ids to include in the fleet screen.
+    // 0 = military ships
+    // 1 = civil ships
+    $screen_objects = [
+        ['light_fighter', 'heavy_fighter', 'cruiser', 'battle_ship', 'battlecruiser', 'bomber', 'destroyer', 'deathstar'],
+        ['small_cargo', 'large_cargo', 'colony_ship', 'recycler', 'espionage_probe'],
+    ];
 
-        $units = [];
-        $count = 0;
+    $planet = $player->planets->current();
 
-        foreach ($screen_objects as $key_row => $objects_row) {
-            foreach ($objects_row as $object_machine_name) {
-                $count++;
+    $units = [];
+    $count = 0;
 
-                $object = ObjectService::getUnitObjectByMachineName($object_machine_name);
+    foreach ($screen_objects as $key_row => $objects_row) {
+        foreach ($objects_row as $object_machine_name) {
+            $count++;
 
-                // Get current level of building
-                $amount = $planet->getObjectAmount($object_machine_name);
+            $object = ObjectService::getUnitObjectByMachineName($object_machine_name);
 
-                $view_model = new UnitViewModel();
-                $view_model->object = $object;
-                $view_model->count = $count;
-                $view_model->amount = $amount;
+            // Get current level of building
+            $amount = $planet->getObjectAmount($object_machine_name);
 
-                $units[$key_row][$object->id] = $view_model;
-            }
+            $view_model = new UnitViewModel();
+            $view_model->object = $object;
+            $view_model->count = $count;
+            $view_model->amount = $amount;
+
+            $units[$key_row][$object->id] = $view_model;
         }
+    }
+
+   
 
         return view('ingame.fleet.index')->with([
             'player' => $player,

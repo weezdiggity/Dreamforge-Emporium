@@ -21,9 +21,10 @@ class GlobalGame
     public function handle(Request $request, Closure $next): mixed
     {
         if (Auth::check()) {
+            $player = app(PlayerService::class);
+$player->load(auth()->id());
             // Load current player and make it available as a request singleton via PlayerService.
-            $player = resolve(PlayerService::class, ['player_id' => $request->user()->id]);
-
+            $playerService = resolve(PlayerService::class, ['player_id' => auth()->id()]);
             /** @var PlayerService $player */
             app()->instance(PlayerService::class, $player);
 

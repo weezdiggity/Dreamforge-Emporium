@@ -354,7 +354,7 @@ Combat simulation save slots +20">
                             <span class="textlabel">@lang('Overview')</span>
                         </a>
                     </li>
-
+<!--
                     <li>
                         <span class="menu_icon">
                             <a href="{{ route('resources.settings') }}"
@@ -371,8 +371,25 @@ Combat simulation save slots +20">
                         >
                             <span class="textlabel">@lang('Resources')</span>
                         </a>
-                    </li>
-
+                    </li> -->
+                      <li>
+    <span class="menu_icon">
+        <a href="{{ route('profile') }}"
+           class="tooltipRight js_hideTipOnMobile"
+           target="_self"
+           title="My Corridor">
+            <div class="menuImage corridor {{ Request::is('profile') ? 'highlighted' : '' }}"></div>
+        </a>
+    </span>
+    <a class="menubutton {{ Request::is('profile') ? 'selected' : '' }}"
+       href="{{ route('profile') }}"
+       accesskey=""
+       target="_self"
+    >
+        <span class="textlabel">My Corridor</span>
+    </a>
+</li>
+<!--
                     <li>
                         <span class="menu_icon">
                             <div class="menuImage station {{(Request::is('facilities') ? 'highlighted' : '') }}"></div>
@@ -385,7 +402,7 @@ Combat simulation save slots +20">
                             <span class="textlabel">@lang('Facilities')</span>
                         </a>
                     </li>
-
+                    -->
                     <li>
                         <span class="menu_icon">
                             <a href="{{ route('merchant.index') }}#page=traderResources&amp;animation=false"
@@ -404,7 +421,7 @@ Combat simulation save slots +20">
                             <span class="textlabel">@lang('Merchant')</span>
                         </a>
                     </li>
-
+                    <!--
                     <li>
                         <span class="menu_icon">
                             <a href="{{ route('techtree.ajax', ['tab' => 3, 'object_id' => 1, 'open' => 'all']) }}"
@@ -423,7 +440,7 @@ Combat simulation save slots +20">
                             <span class="textlabel">@lang('Research')</span>
                         </a>
                     </li>
-
+                    -->
                     <li>
                         <span class="menu_icon">
                             <div class="menuImage shipyard {{(Request::is('shipyard') ? 'highlighted' : '') }}"></div>
@@ -491,7 +508,7 @@ Combat simulation save slots +20">
                            accesskey=""
                            target="_self"
                         >
-                            <span class="textlabel">@lang('Alliance')</span>
+                            <span class="textlabel">@lang('Factions')</span>
                         </a>
                     </li>
 

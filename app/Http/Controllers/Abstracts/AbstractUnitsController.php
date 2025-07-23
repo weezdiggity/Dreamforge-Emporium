@@ -58,6 +58,7 @@ abstract class AbstractUnitsController extends OGameController
      */
     public function indexPage(Request $request, PlayerService $player): array
     {
+        $player->load(auth()->id());
         $planet = $player->planets->current();
 
         $count = 0;

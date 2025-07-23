@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Game UI Editor</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/grapesjs"></script>
+  <style>
+    body, html {
+      height: 100%;
+      margin: 0;
+    }
+    #gjs {
+      height: 100vh;
+    }
+  </style>
+</head>
+<body>
+  <div id="gjs">
+    <!-- You can paste your HTML structure from Laravel blade here for testing -->
+    <div class="background">
+      <img src="game-ui/corridor.jpg" style="width: 100%;" />
+    </div>
+
+    <div class="hud top-left">
+      <h3>Academy Status</h3>
+      <p>Rank: Cadet</p>
+      <p>Points: 430 / 1000 XP</p>
+    </div>
+
+    <div class="hud bottom-right">
+      <h3>Comm Feed</h3>
+      <p>[SYSTEM] Garden offline 22:00–02:00.</p>
+    </div>
+  </div>
+
+  <script>
+    const editor = grapesjs.init({
+      container: '#gjs',
+      fromElement: true,
+      storageManager: false,
+      height: '100%',
+      width: 'auto',
+      plugins: [],
+      pluginsOpts: {}
+    });
+  </script>
+</body>
+</html>

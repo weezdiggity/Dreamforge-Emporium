@@ -27,12 +27,14 @@
         "spatie/laravel-ignition": "^2.4"
     },
     "autoload": {
-        "psr-4": {
-            "OGame\\": "app/",
-            "Php\\Rules\\": "php/Rules/",
-            "Database\\Factories\\": "database/factories/",
-            "Database\\Seeders\\": "database/seeders/"
-        }
+      "psr-4": {
+        "OGame\\": "app/Ogame/",
+        "Php\\Rules\\": "php/Rules/",
+        "Database\\Factories\\": "database/factories/",
+        "Database\\Seeders\\": "database/seeders/",
+        "App\\": "app/",
+        "OGame\\": "app/"
+      }
     },
     "autoload-dev": {
         "psr-4": {

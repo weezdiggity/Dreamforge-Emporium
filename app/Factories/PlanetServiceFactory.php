@@ -316,37 +316,40 @@ class PlanetServiceFactory
      * @param string $planetName
      * @return PlanetService
      */
-    public function createInitialPlanetForPlayer(PlayerService $player, string $planetName): PlanetService
-    {
-        // Use lock when using the determineNewPlanetPosition so that no other process can get the same position
-        $lockKey = "planet_create_lock";
-        $lock = Cache::lock($lockKey, 10);
+    public function createInitialPlanetForPlayer(PlayerService $player, string $planetName): ?PlanetService
+{
+    // Disabled planet creation for game launch.
+    /*
+    $lockKey = "planet_create_lock";
+    $lock = Cache::lock($lockKey, 10);
 
-        // Try to acquire the lock, waiting for up to 10 seconds.
-        if ($lock->block(10)) {
-            try {
-                $new_position = $this->determineNewPlanetPosition();
-                if (empty($new_position->galaxy) || empty($new_position->system) || empty($new_position->position)) {
-                    throw new RuntimeException('Unable to determine new planet position.');
-                }
-
-                $createdPlanet = $this->createPlanet($player, $new_position, $planetName, PlanetType::Planet);
-
-                // Update settings with the last assigned galaxy and system if they changed.
-                $this->settings->set('last_assigned_galaxy', $createdPlanet->getPlanetCoordinates()->galaxy);
-                $this->settings->set('last_assigned_system', $createdPlanet->getPlanetCoordinates()->system);
-
-                // Reload player object so the new planet is added to the planetList.
-                $player->load($player->getId());
-
-                return $createdPlanet;
-            } finally {
-                $lock->release();
+    if ($lock->block(10)) {
+        try {
+            $new_position = $this->determineNewPlanetPosition();
+            if (empty($new_position->galaxy) || empty($new_position->system) || empty($new_position->position)) {
+                throw new RuntimeException('Unable to determine new planet position.');
             }
-        } else {
-            throw new RuntimeException('Unable to acquire lock for planet creation.');
+
+            $createdPlanet = $this->createPlanet($player, $new_position, $planetName, PlanetType::Planet);
+
+            $this->settings->set('last_assigned_galaxy', $createdPlanet->getPlanetCoordinates()->galaxy);
+            $this->settings->set('last_assigned_system', $createdPlanet->getPlanetCoordinates()->system);
+
+            $player->load($player->getId());
+
+            return $createdPlanet;
+        } finally {
+            $lock->release();
         }
+    } else {
+        throw new RuntimeException('Unable to acquire lock for planet creation.');
     }
+    */
+
+    // Return null or handle it gracefully in caller logic.
+    return null;
+}
+
 
     /**
      * Creates a new planet for a player at the given coordinate and then return the planetService instance for it.

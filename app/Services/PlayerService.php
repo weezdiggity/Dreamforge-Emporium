@@ -11,126 +11,81 @@ use OGame\Models\FleetMission;
 use OGame\Models\Planet;
 use OGame\Models\Resources;
 use OGame\Models\User;
+use OGame\Models\Player;
+use OGame\Services\PlayerService;
 use OGame\Models\UserTech;
+use OGame\Services\PlanetListService;
 use RuntimeException;
 use Throwable;
 
-/**
- * Class PlayerService.
- *
- * Player object.
- *
- * @package OGame\Services
- */
+
+
+
+namespace OGame\Services;
+
+use OGame\Models\User;
+use OGame\Models\Player;
+use OGame\Services\PlanetListService;
+use OGame\Services\PlanetServiceFactory;
+
 class PlayerService
 {
-    /**
-     * The planet list object for this player.
-     *
-     * @var PlanetListService
-     */
-    public PlanetListService $planets;
+    public ?User $user = null;
+    public ?PlanetListService $planets = null;
+    private ?UserTech $userTech = null;
 
-    /**
-     * The user object from the model of this player.
-     *
-     * @var User
-     */
-    private User $user;
-
-    /**
-     * The user tech object from the model of this player.
-     *
-     * @var UserTech
-     */
-    private UserTech $user_tech;
-
-    /**
-     * Player constructor.
-     *
-     * @param int $player_id
-     */
-    public function __construct(int $player_id)
+    public function __construct()
     {
-        // Load the player object if a positive player ID is given.
-        if ($player_id !== 0) {
-            $this->load($player_id);
-        } else {
-            // If no player ID is given then an actual player context will not be available.
-            // This is expected for unittests, that's why we create a dummy user object here.
-            $this->user = new User();
-            $this->user->id = 0;
-            $this->planets = resolve(PlanetListService::class, ['player' => $this]);
-        }
+        // Empty constructor so Laravel can auto-resolve it
     }
 
-    /**
-     * Checks if this object is equal to another object.
-     *
-     * @param PlayerService|null $other
-     * @return bool
-     */
-    public function equals(PlayerService|null $other): bool
+    public function load(int $player_id): void
     {
-        return $other !== null && $this->getId() === $other->getId();
+        $this->user = User::findOrFail($player_id);
+
+        $this->planets = new PlanetListService(
+            $this,
+            app(PlanetServiceFactory::class)
+        );
     }
 
-    /**
-     * Load player object by user ID.
-     *
-     * @param int $id
-     */
-    public function load(int $id): void
-    {
-        // Fetch user from model
-        $user = User::where('id', $id)->first();
-        $this->user = $user;
+    // ... rest of your PlayerService methods
 
-        // Fetch user tech from model
-        /** @var UserTech $tech */
-        $tech = $this->user->tech()->first();
-        if (!$tech) {
-            $tech = new UserTech();
-            $tech->user_id = $user->id;
-            $tech->save();
-        }
-        $this->setUserTech($tech);
 
-        // Fetch all planets of user
-        $planet_list_service = resolve(PlanetListService::class, ['player' => $this]);
-        $this->planets = $planet_list_service;
-    }
+    public function getPlayer(int $player_id): ?User
+{
+    return User::find($player_id);
+}
 
-    /**
-     * Checks is the supplied password is valid for this user. This method is used as
-     * a security measure for critical operations like abandoning a planet.
-     *
-     * @param string $password
-     * @return bool
-     */
-    public function isPasswordValid(string $password): bool
-    {
-        return Auth::attempt(['email' => $this->getEmail(), 'password' => $password]);
-    }
+   
 
-    /**
-     * Set user tech object.
-     *
-     * @param UserTech $userTech
-     * @return void
-     */
-    public function setUserTech(UserTech $userTech): void
-    {
-        $this->user_tech = $userTech;
-    }
-
-    /**
-     * Get current player ID.
-     */
     public function getId(): int
     {
-        return $this->user->id;
+        return $this->user?->id ?? 0;
     }
+
+    public function equals(?PlayerService $other): bool
+    {
+        return $other && $this->user->id === $other->user->id;
+    }
+
+    public function isPasswordValid(string $password): bool
+    {
+        return password_verify($password, $this->user->password);
+    }
+
+    public function setUserTech(UserTech $userTech): void
+    {
+        $this->userTech = $userTech;
+    }
+
+    public function getUserTech(): ?UserTech
+    {
+        return $this->userTech;
+    }
+  
+
+
 
     /**
      * Saves current player object to DB.
@@ -387,33 +342,25 @@ class PlayerService
      * @throws Throwable
      */
     public function update(): void
-    {
-        DB::transaction(function () {
-            // Attempt to acquire a lock on the row for this user. This is to prevent
-            // race conditions when multiple requests are updating the same user and
-            // potentially doing double insertions or overwriting each other's changes.
-            $playerLock = User::where('id', $this->getId())
-                ->lockForUpdate()
-                ->first();
+{
+    $player = User::find($this->getId());
 
-            if ($playerLock) {
-                // ------
-                // 1. Update research queue
-                // ------
-                $this->updateResearchQueue(false);
-
-                // ------
-                // 2. Update last_ip and time properties.
-                // ------
-                $this->user->time = (string)Carbon::now()->timestamp;
-                $this->user->last_ip = request()->ip();
-
-                $this->user->save();
-            } else {
-                throw new \Exception('Could not acquire player update lock.');
-            }
-        });
+    if (!$player) {
+        throw new \Exception('User not found.');
     }
+
+    // Update research queue
+    $this->updateResearchQueue(false);
+
+    // Update time and IP
+    $player->time = (string) \Illuminate\Support\Carbon::now()->timestamp;
+    $player->last_ip = request()->ip();
+
+    $player->save();
+
+    // Sync user reference
+    $this->user = $player;
+}
 
     /**
      * Update the research queue for this player.
@@ -457,12 +404,13 @@ class PlayerService
      */
     public function updateFleetMissions(): void
     {
-        DB::transaction(function () {
+       \Illuminate\Support\Facades\DB::transaction(function () {
             // Attempt to acquire a lock on the row for this planet. This is to prevent
             // race conditions when multiple requests are updating the fleet missions for the
             // same planet and potentially doing double insertions or overwriting each other's changes.
             $planetIds = $this->planets->allIds();
-            $planetMissionUpdateLock = Planet::whereIn('id', $planetIds)
+            $planetMissionUpdateLock = \OGame\Models\Planet::whereIn('id', $planetIds)
+
                 ->lockForUpdate()
                 ->get();
 
@@ -582,13 +530,24 @@ class PlayerService
      * @return int
      */
     public function getMaxPlanetAmount(): int
-    {
-        $astrophyicsLevel = $this->getResearchLevel('astrophysics');
-        $astrophysicsObject = ObjectService::getResearchObjectByMachineName('astrophysics');
+{
+    $userTech = $this->getUserTech();
 
-        // +1 to max_colonies to get max_planets because the main planet is not included in the calculation above.
-        return 1 + $astrophysicsObject->performCalculation(CalculationType::MAX_COLONIES, $astrophyicsLevel);
+    if (!$userTech) {
+        // Handle fallback value or throw a helpful exception
+        return 1; // Default max planets if no user tech is set
+        // OR
+        // throw new \RuntimeException("UserTech is not set on PlayerService.");
     }
+
+    $astrophysicsObject = $userTech->getAstrophysicsObject();
+    $astrophysicsLevel = $userTech->getAstrophysicsLevel();
+
+    return 1 + $astrophysicsObject->performCalculation(
+        \OGame\GameObjects\Models\Calculations\CalculationType::MAX_COLONIES,
+        $astrophysicsLevel
+    );
+}
 
     /**
      * Delete the player and all associated records from the database.
@@ -635,14 +594,20 @@ class PlayerService
      * @return bool
      */
     public function isBuildingObject(string $machine_name): bool
-    {
-        foreach ($this->planets->all() as $planet) {
-            $object_level = $planet->getObjectLevel($machine_name);
-            if ($planet->isBuildingObject($machine_name, $object_level + 1)) {
-                return true;
-            }
-        }
-
+{
+    if ($this->planets === null) {
+        // Optionally, throw a meaningful exception or silently return false
+        // throw new \RuntimeException('PlayerService::planets is not initialized.');
         return false;
     }
+
+    foreach ($this->planets->all() as $planet) {
+        $object_level = $planet->getObjectLevel($machine_name);
+        if ($planet->isBuildingObject($machine_name, $object_level + 1)) {
+            return true;
+        }
+    }
+
+    return false;
+}
 }

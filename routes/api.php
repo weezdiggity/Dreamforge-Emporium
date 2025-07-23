@@ -12,6 +12,10 @@ use Illuminate\Http\Request;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+// routes/api.php
+Route::get('/academy/status', [AcademyController::class, 'apiStatus']);
+
+Route::get('/academy/status', [AcademyController::class, 'status']);
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();

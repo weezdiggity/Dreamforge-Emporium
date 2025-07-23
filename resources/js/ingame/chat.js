@@ -429,6 +429,8 @@ ogame.chat = {
         ogame.chat.initMaximize();
         ogame.chat.getInMaxChat()
     },
+  
+
     getLastChatItemData: function () {
         var l = ogame.chat;
         var h = null;

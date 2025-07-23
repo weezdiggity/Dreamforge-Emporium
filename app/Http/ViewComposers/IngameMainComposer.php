@@ -59,6 +59,10 @@ class IngameMainComposer
      */
     public function compose(View $view): void
     {
+        // Ensure the player and planets are loaded first
+    if (!$this->player->planets) {
+        $this->player->load(auth()->id());
+    }
         $current_planet = $this->player->planets->current();
         $resources = [
             'metal' => [

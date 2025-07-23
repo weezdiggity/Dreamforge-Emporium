@@ -2,7 +2,7 @@
 
 
 
-
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use OGame\Http\Controllers\Admin\DeveloperShortcutsController;
 use OGame\Http\Controllers\Admin\ServerSettingsController as AdminServerSettingsController;
@@ -33,7 +33,9 @@ use OGame\Http\Controllers\ServerSettingsController;
 use OGame\Http\Controllers\ShipyardController;
 use OGame\Http\Controllers\ShopController;
 use OGame\Http\Controllers\TechtreeController;
-
+use OGame\Http\Controllers\PlayerProfileController;
+use OGame\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\PlayerSetupController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -44,6 +46,9 @@ use OGame\Http\Controllers\TechtreeController;
 | contains the "web" middleware group. Now create something great!
 |
 */
+Route::get('/db-test', function () {
+    return DB::select('SELECT 1 AS result');
+});
 
 Route::get('/check', function () {
     return config('app.key');
@@ -51,15 +56,20 @@ Route::get('/check', function () {
 Route::get('/check', function () {
     return 'Laravel is working!';
 });
-Route::get('/', function () {
-    return view('welcome');
+Route::get('/login', function () {
+    return view('login');
 });
 
+Route::get('/', function () {
+    return redirect('/login'); // Or show a welcome view here instead
+});
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [LoginController::class, 'login']);
 // Group: all logged in pages:
 Route::middleware(['auth', 'globalgame', 'locale'])->group(function () {
     // Overview
     Route::get('/overview', [OverviewController::class, 'index'])->name('overview.index');
-
+});
     // Resources
     Route::get('/resources', [ResourcesController::class, 'index'])->name('resources.index');
     Route::get('/resources/settings', [ResourcesController::class, 'settings'])->name('resources.settings');
@@ -122,10 +132,28 @@ Route::middleware(['auth', 'globalgame', 'locale'])->group(function () {
     Route::get('/ajax/messages/{messageId}', [MessagesController::class, 'ajaxGetMessage'])->name('messages.ajax.getmessage');
 
     // Misc
+    // routes/web.php
+    Route::get('/academy/status', [AcademyController::class, 'status']);
+    Route::get('/academy/status', [AcademyController::class, 'getStatus'])->middleware('auth');
+    Route::get('/overview', [PlayerSetupController::class, 'showOverview'])
+    ->middleware(['auth'])
+    ->name('overview.index');
+    Route::middleware(['auth'])->post('/select-race', [PlayerSetupController::class, 'select']);
+    Route::post('/select-race', [PlayerSetupController::class, 'select'])->name('race.select');
+    Route::middleware(['auth'])->group(function () {
+    Route::get('/alliance', [AllianceController::class, 'index'])->name('alliance.index');
+    Route::post('/alliance/join', [AllianceController::class, 'join'])->name('alliance.join');
+    Route::get('/alliance/ajax/create', [AllianceController::class, 'ajaxCreate'])->name('alliance.ajax.create');
+    
+    Route::middleware(['auth'])->group(function () {
+    Route::get('/profile', [PlayerProfileController::class, 'index'])->name('profile');
+});
+Route::post('/profile/avatar', [PlayerProfileController::class, 'selectAvatar'])->name('profile.avatar');
+
     Route::get('/merchant', [MerchantController::class, 'index'])->name('merchant.index');
 
-    Route::get('/alliance', [AllianceController::class, 'index'])->name('alliance.index');
-    Route::get('/ajax/alliance/create', [AllianceController::class, 'ajaxCreate'])->name('alliance.ajax.create');
+   Route::post('/alliance/join', [AllianceController::class, 'join'])->name('alliance.join');
+Route::get('/alliance/ajax/create', [AllianceController::class, 'ajaxCreate'])->name('alliance.ajax.create');
 
     Route::get('/premium', [PremiumController::class, 'index'])->name('premium.index');
     Route::get('/shop', [ShopController::class, 'index'])->name('shop.index');
@@ -175,7 +203,7 @@ Route::middleware(['auth', 'globalgame', 'locale', 'admin'])->group(function () 
     Route::post('/admin/developershortcuts/create-debris', [DeveloperShortcutsController::class, 'createDebris'])->name('admin.developershortcuts.create-debris');
 }); // <== THIS was missing
 
-// Not part of the group — standalone route
+// Not part of the group ï¿½ standalone route
 Route::get('/debug-key', function () {
     return [
         'APP_KEY' => config('app.key'),

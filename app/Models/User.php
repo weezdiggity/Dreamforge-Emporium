@@ -4,6 +4,7 @@ namespace OGame\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
@@ -60,43 +61,38 @@ use Spatie\Permission\Traits\HasRoles;
  * @method static \Illuminate\Database\Eloquent\Builder|User whereUsernameUpdatedAt($value)
  * @mixin \Eloquent
  */
+
+
 class User extends Authenticatable
 {
     use Notifiable;
     use HasFactory;
     use HasRoles;
 
-    /**
-     * Disable use of default "remember_token" laravel behavior.
-     * @var bool
-     */
     public $remember_token = false;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'username', 'email', 'password', 'lang',
     ];
 
-    /**
-     * The attributes that should be hidden for arrays.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
     ];
 
-    /**
-     * Get the user tech record associated with the user.
-     *
-     * @return HasOne
-     */
     public function tech(): HasOne
     {
         return $this->hasOne(UserTech::class);
     }
+    public function planets(): HasMany
+{
+    return $this->hasMany(Planet::class, 'user_id');
+}
+    // ✅ Place this here ONLY if User belongs to another model (probably not needed)
+    // public function someOtherModel(): BelongsTo
+    // {
+    //     return $this->belongsTo(SomeModel::class);
+    // }
+ 
+
+    // other functions, if any
 }
