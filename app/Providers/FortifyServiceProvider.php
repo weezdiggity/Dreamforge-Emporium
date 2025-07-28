@@ -12,16 +12,31 @@ use OGame\Actions\Fortify\CreateNewUser;
 use OGame\Actions\Fortify\ResetUserPassword;
 use OGame\Actions\Fortify\UpdateUserPassword;
 use OGame\Actions\Fortify\UpdateUserProfileInformation;
+use Laravel\Fortify\Contracts\RegisterViewResponse;
+use Laravel\Fortify\Contracts\LoginViewResponse;
+use Laravel\Fortify\Contracts\RequestPasswordResetLinkViewResponse;
+use Laravel\Fortify\Contracts\ResetPasswordViewResponse;
+use Laravel\Fortify\Contracts\VerifyEmailViewResponse;
+use Laravel\Fortify\Contracts\TwoFactorChallengeViewResponse;
+
+
 
 class FortifyServiceProvider extends ServiceProvider
 {
     /**
      * Register any application services.
      */
-    public function register(): void
-    {
-        //
-    }
+    public function register()
+{
+    $this->app->singleton(RegisterViewResponse::class, function () {
+        return new class implements \Laravel\Fortify\Contracts\RegisterViewResponse {
+            public function toResponse($request)
+            {
+                return view('auth.register'); // Or your custom registration view
+            }
+        };
+    });
+}
 
     /**
      * Bootstrap any application services.

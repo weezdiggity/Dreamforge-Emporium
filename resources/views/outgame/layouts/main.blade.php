@@ -277,7 +277,7 @@
 
                 </div>
                 <div class="input-wrap first">
-                    <label for="server">Universe: (<a class="overlay" data-type="ajax" href="/ajax/main/distinctions">Distinctions</a>)</label>
+                    <label for="server">Alpha Forge (<a class="overlay" data-type="ajax" href="/ajax/main/distinctions">Distinctions</a>)</label>
                     <!--<div id="server" style="position:relative;">
                         <table cellspacing="0"
                                cellpadding="0"

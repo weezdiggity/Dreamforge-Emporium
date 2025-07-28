@@ -62,27 +62,28 @@ class PlanetService
      * @param int|null $planet_id
      *  If supplied the constructor will try to load the planet from the database.
      */
-    public function __construct(PlayerServiceFactory $playerServiceFactory, SettingsService $settingsService, PlayerService|null $player = null, Planet|null $planet = null, int|null $planet_id = null)
-    {
-        // Load the planet object if a positive planet ID is given.
-        // If no planet ID is given then planet context will not be available
-        // but this can be fine for unittests or when creating a new planet.
-        if ($planet !== null) {
-            $this->planet = $planet;
-        } elseif ($planet_id !== 0) {
-            $this->loadByPlanetId($planet_id);
-        }
-
-        if ($player === null) {
-            // If no player has been provided, we load it ourselves here.
-            $playerService = $playerServiceFactory->make($this->planet->user_id);
-            $this->player = $playerService;
-        } else {
-            $this->player = $player;
-        }
-
-        $this->settingsService = $settingsService;
+   public function __construct(
+    PlayerServiceFactory|null $playerServiceFactory = null,
+    SettingsService $settingsService,
+    PlayerService|null $player = null,
+    Planet|null $planet = null,
+    int|null $planet_id = null
+)
+{
+    if ($planet !== null) {
+        $this->planet = $planet;
+    } elseif ($planet_id !== 0) {
+        $this->loadByPlanetId($planet_id);
     }
+
+    if ($player === null && $playerServiceFactory !== null && $this->planet !== null) {
+        $this->player = $playerServiceFactory->make($this->planet->user_id);
+    } else {
+        $this->player = $player;
+    }
+
+    $this->settingsService = $settingsService;
+}
 
     /**
      * Load planet object by planet ID.

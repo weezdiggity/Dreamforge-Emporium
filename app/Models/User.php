@@ -72,8 +72,12 @@ class User extends Authenticatable
     public $remember_token = false;
 
     protected $fillable = [
-        'username', 'email', 'password', 'lang',
-    ];
+    'name',
+    'username',
+    'email',
+    'password',
+];
+
 
     protected $hidden = [
         'password',
@@ -87,7 +91,8 @@ class User extends Authenticatable
 {
     return $this->hasMany(Planet::class, 'user_id');
 }
-    // ✅ Place this here ONLY if User belongs to another model (probably not needed)
+ 
+// ✅ Place this here ONLY if User belongs to another model (probably not needed)
     // public function someOtherModel(): BelongsTo
     // {
     //     return $this->belongsTo(SomeModel::class);

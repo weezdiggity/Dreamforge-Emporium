@@ -271,14 +271,10 @@ class PlayerService
      * @return int
      */
     public function getCurrentPlanetId(): int
-    {
-        if (!$this->user->planet_current) {
-            // If no current planet is set, return the first planet of the player.
-            return $this->planets->first()->getPlanetId();
-        }
-
-        return $this->user->planet_current;
-    }
+{
+    //TODO TEMPORARY: Skip planet logic entirely
+    return 0; // Or -1 if 0 is used elsewhere
+}
 
     /**
      * Set current planet ID (update).

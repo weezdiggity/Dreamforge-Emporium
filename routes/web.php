@@ -1,9 +1,8 @@
 <?php
 
-
-
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\File;
 use OGame\Http\Controllers\Admin\DeveloperShortcutsController;
 use OGame\Http\Controllers\Admin\ServerSettingsController as AdminServerSettingsController;
 use OGame\Http\Controllers\AllianceController;
@@ -35,7 +34,12 @@ use OGame\Http\Controllers\ShopController;
 use OGame\Http\Controllers\TechtreeController;
 use OGame\Http\Controllers\PlayerProfileController;
 use OGame\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\PlayerSetupController;
+use OGame\Http\Controllers\PlayerSetupController;
+use OGame\Http\Controllers\Auth\RegisterController;
+use OGame\Http\Controllers\WelcomeController;
+
+Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+Route::post('/register', [RegisterController::class, 'register']);
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -133,6 +137,27 @@ Route::middleware(['auth', 'globalgame', 'locale'])->group(function () {
 
     // Misc
     // routes/web.php
+    Route::get('/', [\OGame\Http\Controllers\WelcomeController::class, 'index']);
+
+    Route::get('/', [WelcomeController::class, 'showWelcome']);
+    Route::get('/', function () {
+    return view('welcome');
+}); 
+Route::get('/', function () {
+    return view('welcome');
+});
+Route::get('/welcome', function () {
+    $files = File::files(public_path('img/slideshow'));
+    $images = [];
+
+    foreach ($imagefiles as $file) {
+        $images[] = asset('img/slideshow/' . $file->getFilename());
+    }
+
+    shuffle($images); // Randomize the order
+
+    return view('welcome', ['images' => $images]);
+});
     Route::get('/academy/status', [AcademyController::class, 'status']);
     Route::get('/academy/status', [AcademyController::class, 'getStatus'])->middleware('auth');
     Route::get('/overview', [PlayerSetupController::class, 'showOverview'])

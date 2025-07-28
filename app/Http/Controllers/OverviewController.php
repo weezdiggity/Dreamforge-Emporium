@@ -32,7 +32,12 @@ class OverviewController extends OGameController
     {
         $this->setBodyId('overview');
 
-        $planet = $player->planets->current();
+        if ($player->planets->isEmpty()) {
+    return view('ingame.overview.no_planet'); // 👈 Create this view to explain the Academy or next steps
+}
+
+
+
 
         // Parse building queue for this planet
         $build_full_queue = $building_queue->retrieveQueue($planet);

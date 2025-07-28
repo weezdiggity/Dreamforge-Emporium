@@ -130,37 +130,50 @@ class PlanetListService
     /**
      * Returns current planet of player.
      */
-    public function current(): PlanetService
-    {
-        // Get current planet from PlayerService object.
-        $currentPlanetId = $this->player->getCurrentPlanetId();
+  public function current(): PlanetService
+{
+    $currentPlanetId = $_SESSION['current_planet_id'] ?? null;
 
-        // Check if this planet actually exists before returning it.
-        foreach ($this->planets as $planet) {
-            if ($planet->getPlanetId() === $currentPlanetId) {
-                return $planet;
-            }
+    foreach ($this->planets as $planet) {
+        if ($planet->getPlanetId() === $currentPlanetId) {
+            return $planet;
         }
-
-        foreach ($this->moons as $moon) {
-            if ($moon->getPlanetId() === $currentPlanetId) {
-                return $moon;
-            }
-        }
-
-        // No valid current planet set, return first planet instead.
-        return $this->first();
     }
 
+    foreach ($this->moons as $moon) {
+        if ($moon->getPlanetId() === $currentPlanetId) {
+            return $moon;
+        }
+    }
+
+    // No valid current planet set. Return a dummy for now.
+    if (empty($this->planets)) {
+        return new PlanetService($this->planetServiceFactory, $settingsServiceInstance, $player, $planet, $planet_id);
+
+
+            
+    }
+
+    return $this->first();
+}
+
+
+
     /**
-     * Get first planet of player.
+     * Players don't start with a planet.
      *
      * @return PlanetService
      */
-    public function first(): PlanetService
-    {
-        return $this->planets[0];
+  public function first(): ?PlanetService
+{
+    if (empty($this->planets)) {
+        return null; // No exception anymore
     }
+
+    return $this->planets[0];
+}
+
+
 
     /**
      * Return array of all planet and moon objects, ordered so that each planet is followed by its moon (if it exists).
