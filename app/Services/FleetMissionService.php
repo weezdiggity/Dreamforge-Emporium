@@ -280,43 +280,28 @@ if ($this->player && $this->player->planets) {
      *
      * @return bool
      */
-   public function currentPlayerUnderAttack(): bool
+ public function currentPlayerUnderAttack(): bool
 {
-    // Ensure player planets are loaded
-    if (!$this->player->planets) {
-        $this->player->load(auth()->id());
-    }
-
-    $planetIds = [];
-    foreach ($this->player->planets->all() as $planet) {
-        $planetIds[] = $planet->getPlanetId();
-    }
-
-    return $this->model->whereIn('planet_id_to', $planetIds)
+    return $this->model
         ->where('user_id', '!=', $this->player->getId())
+        ->where('location_id_to', $this->player->getCurrentLocationId())
         ->whereIn('mission_type', [1, 2, 6, 9])
         ->where('processed', 0)
         ->exists();
 }
 
+// Now we start a **new method**:
+public function getFleetUnitCount(FleetMission $mission): int
+{
+    $unit_count = 0;
 
-    /**
-     * Get the total unit count of a fleet mission.
-     *
-     * @param FleetMission $mission
-     * @return int
-     */
-    public function getFleetUnitCount(FleetMission $mission): int
-    {
-        // Loop through all known unit types and sum them up.
-        $unit_count = 0;
-
-        foreach (ObjectService::getShipObjects() as $ship) {
-            $unit_count += $mission->{$ship->machine_name};
-        }
-
-        return $unit_count;
+    foreach (ObjectService::getShipObjects() as $ship) {
+        $unit_count += $mission->{$ship->machine_name};
     }
+
+    return $unit_count;
+}
+
 
     /**
      * Returns the units of a fleet mission.

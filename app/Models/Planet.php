@@ -158,6 +158,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|Planet whereUserId($value)
  * @method static \Database\Factories\PlanetFactory factory($count = null, $state = [])
  * @property int $solar_satellite_percent
+ * @property \OGame\Models\Player $player
  * @method static \Illuminate\Database\Eloquent\Builder|Planet whereSolarSatellitePercent($value)
  * @property int $lunar_base
  * @property int $sensor_phalanx
@@ -170,8 +171,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Planet extends Model
 {
-   public function user(): BelongsTo
+    protected $table = 'planets';
+
+    public function player()
     {
-        return $this->belongsTo(\OGame\Models\User::class, 'user_id');
+        return $this->belongsTo(Player::class);
     }
-} // <--- This is the only closing brace you need
+}
+
+ // <--- This is the only closing brace you need

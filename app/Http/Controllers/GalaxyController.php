@@ -6,6 +6,7 @@ use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use OGame\Services\PlanetListService;
 use OGame\Factories\PlanetServiceFactory;
 use OGame\Models\Planet;
 use OGame\Services\DebrisFieldService;
@@ -16,15 +17,69 @@ use OGame\Models\Enums\PlanetType;
 
 class GalaxyController extends OGameController
 {
-    /**
-     * @var PlayerService
-     */
-    private PlayerService $playerService;
+    protected Player $player;
+    protected PlayerService $playerService;  // If you use it
+    protected PlanetListService $planetListService;
+    protected PlanetServiceFactory $planetServiceFactory;
+    protected SettingsService $settingsService;
 
-    /**
-     * @var PlanetServiceFactory
-     */
-    private PlanetServiceFactory $planetServiceFactory;
+    public function __construct(
+        Player $player,
+        PlanetListService $planetListService,
+        PlanetServiceFactory $planetServiceFactory,
+        SettingsService $settingsService
+    ) {
+        $this->player = $player;  // lowercase p for parameter
+        $this->planetListService = $planetListService;
+        $this->planetServiceFactory = $planetServiceFactory;
+        $this->settingsService = $settingsService;
+    }
+
+    public function getCurrentPlayer(): Player
+    {
+        return $this->player;
+    }
+
+    public function index(Request $request, PlayerService $playerService, SettingsService $settingsService, PlanetServiceFactory $planetServiceFactory): View
+{
+    // Load the authenticated player
+    $player = $playerService;
+    $player->load(auth()->id());
+
+    // Get current galaxy and system from current planet
+    $planet = $player->planets->current();
+    $coordinates = $planet->getPlanetCoordinates();
+    $galaxy = $coordinates->galaxy;
+    $system = $coordinates->system;
+
+    // Override galaxy/system from query string if provided
+    $galaxy_qs = $request->input('galaxy', '0');
+    $system_qs = $request->input('system', '0');
+    if (!empty($galaxy_qs) && !empty($system_qs)) {
+        $galaxy = (int)$galaxy_qs;
+        $system = (int)$system_qs;
+    }
+
+    // Get accessible planets for the player (optional, if you need it)
+    $planets = $this->planetListService->getAccessiblePlanetsForPlayer($player);
+
+    return view('ingame.galaxy.index')->with([
+        'current_galaxy' => $galaxy,
+        'current_system' => $system,
+        'player' => $player,
+        'planet' => $planet,
+        'espionage_probe_count' => $planet->getObjectAmount('espionage_probe'),
+        'recycler_count' => $planet->getObjectAmount('recycler'),
+        'interplanetary_missiles_count' => $planet->getObjectAmount('interplanetary_missile'),
+        'used_slots' => 0,
+        'max_slots' => 1,
+        'max_galaxies' => $settingsService->numberOfGalaxies(),
+        'planets' => $planets,
+    ]);
+}
+
+
+
 
     /**
      
@@ -36,42 +91,7 @@ class GalaxyController extends OGameController
      * @param PlanetServiceFactory $planetServiceFactory
      * @return View
      */
-    public function index(Request $request, PlayerService $player, SettingsService $settingsService, PlanetServiceFactory $planetServiceFactory): View
-    {
-        $this->playerService = $player;
-        $this->planetServiceFactory = $planetServiceFactory;
-
-       
-         // Load the authenticated player
-    $player->load(auth()->id());
-    
-     // Get current galaxy and system from current planet.
-        $planet = $player->planets->current();
-        $coordinates = $planet->getPlanetCoordinates();
-        $galaxy = $coordinates->galaxy;
-        $system = $coordinates->system;
-
-        // Get galaxy and system querystring params if set instead.
-        $galaxy_qs = $request->input('galaxy', '0');
-        $system_qs = $request->input('system', '0');
-        if (!empty($galaxy_qs) && !empty($system_qs)) {
-            $galaxy = (int)$galaxy_qs;
-            $system = (int)$system_qs;
-        }
-
-        return view('ingame.galaxy.index')->with([
-            'current_galaxy' => $galaxy,
-            'current_system' => $system,
-            'player' => $player,
-            'planet' => $planet,
-            'espionage_probe_count' => $planet->getObjectAmount('espionage_probe'),
-            'recycler_count' => $planet->getObjectAmount('recycler'),
-            'interplanetary_missiles_count' => $planet->getObjectAmount('interplanetary_missile'),
-            'used_slots' => 0,
-            'max_slots' => 1,
-            'max_galaxies' => $settingsService->numberOfGalaxies(),
-        ]);
-    }
+   
 
     /**
      * Get galaxy table (used for both static and AJAX requests).

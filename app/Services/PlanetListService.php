@@ -7,7 +7,9 @@ use OGame\Services\PlanetServiceFactory;
 use OGame\Models\Planet as Planet;
 use OGame\Models\Enums\PlanetType;
 use OGame\Models\Planet\Coordinate;
-
+use OGame\Models\Fleet;
+use OGame\Models\Player;
+use Illuminate\Database\Eloquent\Collection;
 /**
  * Class PlanetList.
  *
@@ -17,34 +19,88 @@ use OGame\Models\Planet\Coordinate;
  */
 class PlanetListService
 {
-    private array $planets = [];
-    private array $moons = [];
-    private PlayerService $player;
-    private PlanetServiceFactory $planetServiceFactory;
+    public function getCurrentPlanetForPlayer(Player $player): ?Planet
+    {
+        // Get from session, database, or logic
+        return session('current_planet') 
+            ?? $this->getDefaultPlanet(); // fallback
+    }
+
+    public function setCurrentPlanetForPlayer(Player $player, Planet $planet): void
+    {
+        session(['current_planet' => $planet]);
+    }
+
+    protected function getDefaultPlanet(): ?Planet
+    {
+        return Planet::first(); // Or some logic for default visit
+    }
 
     /**
      * PlanetListService constructor.
      */
-    public function __construct(PlayerService $player, PlanetServiceFactory $planetServiceFactory)
-    {
-        $this->player = $player;
-        $this->planetServiceFactory = $planetServiceFactory;
+ public function __construct(
+    Player $player, // Now OGame\Models\Player
+    PlayerService $playerService,
+    PlanetServiceFactory $planetServiceFactory,
+    SettingsService $settingsService
+) {
+    $this->player = $player;
+    $this->playerService = $playerService;
+    $this->planetServiceFactory = $planetServiceFactory;
+    $this->settingsService = $settingsService;
+    $player = $this->playerService->getCurrentPlayer();
 
-        $this->moons = [];
+    
+    $this->model = new Fleet();  
+    $this->moons = [];
+    $this->loadPlanets();
+}
 
-        // Get all planets (and moons) of user.
-        $planets = Planet::where('user_id', $player->getId())->get();
+public function loadPlanets(): void
+{
+    // Example: get all planets player can currently visit
+    $planets = $this->getAccessiblePlanetsForPlayer($this->player);
 
-        foreach ($planets as $planetModel) {
-            $planetService = $this->planetServiceFactory->makeFromModel($planetModel, $this->player);
 
-            if ($planetService->getPlanetType() === PlanetType::Planet) {
-                $this->planets[] = $planetService;
-            } elseif ($planetService->getPlanetType() === PlanetType::Moon) {
-                $this->moons[] = $planetService;
-            }
+
+    foreach ($planets as $planetModel) {
+        $planetService = $this->planetServiceFactory->makeFromModel($planetModel, $this->player);
+
+        if ($planetService->getPlanetType() === PlanetType::Planet) {
+            $this->planets[] = $planetService;
+        } elseif ($planetService->getPlanetType() === PlanetType::Moon) {
+            $this->moons[] = $planetService;
         }
     }
+}
+    public function load(int $player_id): void
+{
+    $this->user = User::findOrFail($player_id);
+
+    $settingsService = new SettingsService();
+
+    $this->planetListService = new PlanetListService(
+        $this,
+        $this->planetServiceFactory,
+        $settingsService
+    );
+
+    // Here you fetch the planets once player is loaded
+    $this->planets = $this->planetListService->getAccessiblePlanetsForPlayer($this->player);
+}
+    public function getAccessiblePlanets(): ?Collection
+{
+    return $this->planetListService->getAccessiblePlanetsForPlayer($this->player);
+}
+
+public function getAccessiblePlanetsForPlayer(Player $player): Collection
+{
+    // This example returns all planets for now.
+    // You can add more complex logic like faction membership, discovered planets, quests, etc.
+
+    return Planet::all();
+}
 
     /**
      * Get already loaded planet or moon by ID.

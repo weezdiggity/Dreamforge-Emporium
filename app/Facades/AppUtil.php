@@ -17,11 +17,8 @@ class AppUtil extends Facade
      * @param int|float $number
      * @return string
      */
-    public static function formatNumber(int|float $number): string
-    {
-        // If number is less than 1,000, just return it with no formatting
-        return number_format($number, 0, ',', ',');
-    }
+ 
+
 
     /**
      * Format a number with K for thousands and Mn for millions, with one decimal place for thousands

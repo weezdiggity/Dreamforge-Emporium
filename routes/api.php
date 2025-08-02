@@ -1,5 +1,5 @@
 <?php
-
+use OGame\Http\Controllers\PlayerController;
 use Illuminate\Http\Request;
 
 /*
@@ -14,9 +14,11 @@ use Illuminate\Http\Request;
 */
 // routes/api.php
 Route::get('/academy/status', [AcademyController::class, 'apiStatus']);
-
+Route::get('/overview', [OverviewController::class, 'index'])->name('overview');
+Route::get('/galaxy', [GalaxyController::class, 'index']);
 Route::get('/academy/status', [AcademyController::class, 'status']);
-
+Route::get('/players', [PlayerController::class, 'index']);
+Route::get('/players/{id}', [PlayerController::class, 'show']);
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });

@@ -37,9 +37,12 @@ use OGame\Http\Controllers\Auth\LoginController;
 use OGame\Http\Controllers\PlayerSetupController;
 use OGame\Http\Controllers\Auth\RegisterController;
 use OGame\Http\Controllers\WelcomeController;
+use OGame\Http\Controllers\PlayerController;
 
 Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
 Route::post('/register', [RegisterController::class, 'register']);
+Route::get('/players', [PlayerController::class, 'index']);
+Route::get('/players/{id}', [PlayerController::class, 'show']);
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -137,8 +140,9 @@ Route::middleware(['auth', 'globalgame', 'locale'])->group(function () {
 
     // Misc
     // routes/web.php
+    Route::get('/galaxy', [GalaxyController::class, 'index']);
     Route::get('/', [\OGame\Http\Controllers\WelcomeController::class, 'index']);
-
+    Route::get('/overview', [OverviewController::class, 'index'])->name('overview');
     Route::get('/', [WelcomeController::class, 'showWelcome']);
     Route::get('/', function () {
     return view('welcome');

@@ -10,7 +10,9 @@
 
 @section('content')
 <div class="register-page">
-    
+  <audio id="bg-music" autoplay loop hidden>
+  <source src="audio/Recruit DM.mp3" type="audio/mpeg">
+</audio>
 <div class="register-container">
     <form method="POST" action="{{ route('register') }}">
         @csrf
@@ -103,6 +105,7 @@ document.addEventListener("DOMContentLoaded", function () {
     updateLore(); // Initial
     setInterval(updateLore, 8000); // Rotate every 8s
 });
+
 </script>
 
 
@@ -261,5 +264,14 @@ button:hover {
 }
 
 </style>
-
+<script>
+    window.addEventListener('click', () => {
+        const audio = document.getElementById('bg-music');
+        if (audio && audio.paused) {
+            audio.play().catch(e => {
+                console.log('Autoplay blocked:', e);
+            });
+        }
+    }, { once: true });
+</script>
     

@@ -3,6 +3,7 @@
 namespace OGame\Services;
 
 use Exception;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -10,64 +11,122 @@ use OGame\GameObjects\Models\Calculations\CalculationType;
 use OGame\Models\FleetMission;
 use OGame\Models\Planet;
 use OGame\Models\Resources;
+use OGame\Models\Fleet;
 use OGame\Models\User;
 use OGame\Models\Player;
+use OGame\Models\Location;
+use OGame\Services\Player as PlayerServiceClass;
+use OGame\Services\PlanetServiceFactory;
 use OGame\Services\PlayerService;
+use OGame\Services\SettingsService;
 use OGame\Models\UserTech;
 use OGame\Services\PlanetListService;
 use RuntimeException;
 use Throwable;
 
 
-
-
-namespace OGame\Services;
-
-use OGame\Models\User;
-use OGame\Models\Player;
-use OGame\Services\PlanetListService;
-use OGame\Services\PlanetServiceFactory;
-
 class PlayerService
 {
+     
+    protected ?Collection $planets = null;
+    protected PlanetServiceFactory $planetServiceFactory;
+    protected Player $player;
+   protected SettingsService $settingsService;
+    protected PlanetListService $planetListService;
     public ?User $user = null;
-    public ?PlanetListService $planets = null;
     private ?UserTech $userTech = null;
+    protected $model;
 
-    public function __construct()
+ public function __construct(
+    Player $player,
+    PlanetServiceFactory $planetServiceFactory,
+    SettingsService $settingsService
+) {
+    $this->player = $player;
+    $this->planetServiceFactory = $planetServiceFactory;
+    $this->settingsService = $settingsService;
+
+    $planetListService = new PlanetListService(
+        $player,
+        $this, // PlayerService
+        $this->planetServiceFactory,
+        $this->settingsService
+    );
+}
+public function getSettingsValue(string $key)
+{
+    return $this->settingsService->get($key);
+}
+
+public function getCurrentPlayer(): Player
     {
-        // Empty constructor so Laravel can auto-resolve it
+        return $this->player;
+    }
+
+
+    public function currentPlayerUnderAttack(): bool
+    {
+        return $this->model
+            ->where('user_id', '!=', $this->player->id)
+            ->where('location_id_to', $this->player->current_location_id)
+            ->whereIn('mission_type', [1, 2, 6, 9])
+            ->where('processed', 0)
+            ->exists();
+    }
+
+    public function getCurrentLocation(): ?Location
+    {
+        if ($this->player->current_location_id) {
+            return Location::find($this->player->current_location_id);
+        }
+
+        return null;
+    }
+
+    public function initializeNewPlayer(Player $player): void
+    {
+        $academy = Location::where('type', 'station')
+                           ->where('name', 'Space Academy')
+                           ->first();
+
+        $player->current_location_id = $academy?->id ?? null;
+        $player->save();
+    }
+
+    public function getPlanets(): ?Collection
+    {
+        return $this->planets;
+    }
+
+    public function setPlanets(?Collection $planets): void
+    {
+        $this->planets = $planets;
     }
 
     public function load(int $player_id): void
-    {
-        $this->user = User::findOrFail($player_id);
-
-        $this->planets = new PlanetListService(
-            $this,
-            app(PlanetServiceFactory::class)
-        );
-    }
-
-    // ... rest of your PlayerService methods
-
-
-    public function getPlayer(int $player_id): ?User
 {
-    return User::find($player_id);
+    $this->user = User::findOrFail($player_id);
+    $player = Player::findOrFail($player_id); // This is what was missing
+
+    $settingsService = new SettingsService(); // Or use DI/container if needed
+
+    $planetListService = new PlanetListService(
+        $player,
+        $this, // assuming this is PlayerService
+        $this->planetServiceFactory,
+        $settingsService
+    );
 }
 
+    
+
+    public function getPlayer(int $player_id): ?User
+    {
+        return User::find($player_id); // <-- Don't leave function body empty!
+    }
+
+
    
-
-    public function getId(): int
-    {
-        return $this->user?->id ?? 0;
-    }
-
-    public function equals(?PlayerService $other): bool
-    {
-        return $other && $this->user->id === $other->user->id;
-    }
 
     public function isPasswordValid(string $password): bool
     {
@@ -83,7 +142,7 @@ class PlayerService
     {
         return $this->userTech;
     }
-  
+
 
 
 
